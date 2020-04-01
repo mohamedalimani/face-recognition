@@ -12,15 +12,15 @@ def delay_start():
             print(time_passed-i)
 
 
-lbp_classifier_face = 'Data/lbpcascade_frontalface.xml'
+lbp_classifier_face = 'lbpcascade_frontalface.xml'
 target_dir = '../target'
 (im_width, im_height) = (110, 90)
 size = 1
 
-lbp_cascade_face = cv2.CascadeClassifier(lbp_classifier_face)
+lbp_cascade_face = cv2.CascadeClassifier(f'Data/{lbp_classifier_face}')
 camera = cv2.VideoCapture(0)
 try:
-    target_name = input("Donne le nom du personage que tu veut l'ajouter :\n")
+    target_name = input("Donner le nom du personage :\n")
 except ValueError:
     print("Vous devez entrer un nom")
     sys.exit(0)
