@@ -7,3 +7,4 @@
 requirements: 
     opencv library for python
     python version 3.6
+    pyqt5 
