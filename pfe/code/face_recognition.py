@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import cv2, time, reconGUI, os, pickle
+import cv2, time, os, pickle
 from PyQt5.QtWidgets import QMessageBox
+import reconGUI, addGUI
 
 
 class Thread(QtCore.QThread):
@@ -15,6 +16,7 @@ class Thread(QtCore.QThread):
         self.fr_proc = 10 # number of frames that should contain the same person name to be added to the list
 
     # load training data and target labels , prepare for face detection
+
     def load_data(self):
         self.recognizer = cv2.face.LBPHFaceRecognizer_create()
         self.recognizer.read("Data/trainer.yml")
@@ -65,7 +67,7 @@ class Thread(QtCore.QThread):
                 break
 
 
-class Main(QtWidgets.QMainWindow, reconGUI.Ui_faceRecon):
+class Main(QtWidgets.QMainWindow, reconGUI.Ui_faceRecon, addGUI.Ui_addnewface):
     def __init__(self, parent=None):
         super(Main, self).__init__(parent)
         self.setupUi(self)
@@ -80,6 +82,12 @@ class Main(QtWidgets.QMainWindow, reconGUI.Ui_faceRecon):
         self.getVidSub.clicked.connect(self.playvid)
         self.horizontalSlider.valueChanged[int].connect(self.controlSpeed)
         self.th.person.connect(self.typename)
+        self.exitProg.triggered.connect(self.force_exit)
+        #self.show()
+
+    # SWITCH BETWEEN WINDOWS
+
+    # FACE RECOGNITION FEATURES
 
     def blocksignal(self):
         self.th.blockSignals(self.block)
@@ -113,6 +121,13 @@ class Main(QtWidgets.QMainWindow, reconGUI.Ui_faceRecon):
         self.person_name.addItem(person_name)
         self.person_name.adjustSize()
         self.person_name.scrollToBottom()
+
+    def force_exit(self):
+        is_exit = QMessageBox.warning(self, "attention !", "étes vous sure d'arreter le programme !", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if is_exit == QMessageBox.Yes:
+            exit()
+        elif is_exit == QMessageBox.No:
+            pass
 
 
 def main():
