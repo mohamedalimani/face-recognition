@@ -1,10 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import cv2, time, os, pickle
+import cv2, time, os, pickle, reconGUI, addGUI
 from PyQt5.QtWidgets import QMessageBox
-import reconGUI, addGUI
 
 
-class Thread(QtCore.QThread):
+class reconThread(QtCore.QThread):
     frameItem = QtCore.pyqtSignal(QtWidgets.QGraphicsPixmapItem)
     person = QtCore.pyqtSignal(str)
 
@@ -45,7 +44,8 @@ class Thread(QtCore.QThread):
                         if first == self.labels[id_]:
                             count += 1
                             if count == self.fr_proc:
-                                self.person.emit(self.labels[id_] + "                            " + str(precision)+"%")
+                                self.person.emit(
+                                    self.labels[id_] + "                            " + str(precision) + "%")
                                 count = 0
                         else:
                             count = 0
@@ -58,7 +58,7 @@ class Thread(QtCore.QThread):
                 else:
                     # this block is for showing image in GUI
                     cvframe = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
-                    image = QtGui.QImage(cvframe, width, height, width*3, QtGui.QImage.Format_RGB888)
+                    image = QtGui.QImage(cvframe, width, height, width * 3, QtGui.QImage.Format_RGB888)
                     pixmap = QtGui.QPixmap.fromImage(image)
                     pixmapItem = QtWidgets.QGraphicsPixmapItem(pixmap)
                     self.frameItem.emit(pixmapItem)
@@ -74,23 +74,18 @@ class Main(QtWidgets.QMainWindow, reconGUI.Ui_faceRecon, addGUI.Ui_addnewface):
         self.block = True
         self.scene = QtWidgets.QGraphicsScene(self)
         self.screen.setScene(self.scene)
-        self.th = Thread()
-        self.th.load_data()
+        self.reconThread = reconThread()
+        self.reconThread.load_data()
         self.start.clicked.connect(self.playwebcam)
         self.block_signal.triggered.connect(self.blocksignal)
-        self.th.frameItem.connect(self.scene.addItem)
+        self.reconThread.frameItem.connect(self.scene.addItem)
         self.getVidSub.clicked.connect(self.playvid)
         self.horizontalSlider.valueChanged[int].connect(self.controlSpeed)
-        self.th.person.connect(self.typename)
+        self.reconThread.person.connect(self.typename)
         self.exitProg.triggered.connect(self.force_exit)
-        #self.show()
-
-    # SWITCH BETWEEN WINDOWS
-
-    # FACE RECOGNITION FEATURES
 
     def blocksignal(self):
-        self.th.blockSignals(self.block)
+        self.reconThread.blockSignals(self.block)
         self.block = not self.block
         if not self.block:
             self.block_signal.setText("débloquer")
@@ -99,23 +94,23 @@ class Main(QtWidgets.QMainWindow, reconGUI.Ui_faceRecon, addGUI.Ui_addnewface):
 
     def playvid(self):
         self.controlSpeed()
-        self.th.vid_name = os.path.basename(self.getVid.text()).strip()
-        if not self.th.vid_name.find(".mp4") == len(self.th.vid_name) - 4:
-            self.th.vid_name = self.th.vid_name + ".mp4"
+        self.reconThread.vid_name = os.path.basename(self.getVid.text()).strip()
+        if not self.reconThread.vid_name.find(".mp4") == len(self.reconThread.vid_name) - 4:
+            self.reconThread.vid_name = self.reconThread.vid_name + ".mp4"
         for (root, directories, files) in os.walk("../ressources/"):
-            if self.th.vid_name in files:
-                self.th.vid_name = "../ressources/" + self.th.vid_name
+            if self.reconThread.vid_name in files:
+                self.reconThread.vid_name = "../ressources/" + self.reconThread.vid_name
             else:
                 QMessageBox.warning(self, 'video untrouvable !', "veuillez réessayer aver une autre nom", QMessageBox.Ok)
         self.getVid.clear()
-        self.th.start()
+        self.reconThread.start()
 
     def playwebcam(self):
-        self.th.vid_name = 0
-        self.th.start()
+        self.reconThread.vid_name = 0
+        self.reconThread.start()
 
     def controlSpeed(self):
-        self.th.play_speed = self.horizontalSlider.value()/1000
+        self.reconThread.play_speed = self.horizontalSlider.value() / 1000
 
     def typename(self, person_name):
         self.person_name.addItem(person_name)
