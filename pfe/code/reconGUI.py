@@ -7,7 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from addGUI import Ui_addnewface
+import addGUI
 
 
 class Ui_faceRecon(object):
@@ -99,7 +99,7 @@ class Ui_faceRecon(object):
 
     def retranslateUi(self, faceRecon):
         _translate = QtCore.QCoreApplication.translate
-        faceRecon.setWindowTitle(_translate("faceRecon", "MainWindow"))
+        faceRecon.setWindowTitle(_translate("faceRecon", "face recognition"))
         self.getVidSub.setText(_translate("faceRecon", "soumettre"))
         self.getVidSub.setShortcut(_translate("faceRecon", "Return"))
         self.getVidlabel.setText(_translate("faceRecon", "déposez une vidéo ici (.mp4)"))
@@ -124,8 +124,11 @@ class Ui_faceRecon(object):
         self.toAddtarget.setText(_translate("faceRecon", "ajouter data"))
 
     def showWindow2(self):
+        self.adDaTh = addGUI.addDataThread()
         self.window = QtWidgets.QMainWindow()
-        self.ui = Ui_addnewface()
+        self.ui = addGUI.Ui_addnewface()
         self.ui.setupUi(self.window)
+        self.ui.addDatastart.clicked.connect(self.ui.add_data)
         self.window.show()
-        # faceRecon.hide()
+
+
