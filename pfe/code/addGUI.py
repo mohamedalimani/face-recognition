@@ -338,9 +338,17 @@ class Ui_Addnewface(object):
         msg.information(QtWidgets.QWidget(), "success !", "l'entrainement est terminé avec succées", msg.Ok)
 
     def delete_label(self):
-        dellabel = self.addDataLabel_2.text().strip()
-        for root, directories, files in os.walk("../target/"):
-            if dellabel in directories:
+        y = self.addDataLabel_2.text().strip()
+        dellabel = os.path.basename(y)
+        msg = QtWidgets.QMessageBox()
+        x = QtWidgets.QMessageBox.warning(QtWidgets.QWidget(),"WARNING !!!", f"voullez vous vraiment supprimer le repertoire sous le nom {dellabel}", msg.No | msg.Yes, msg.No)
+        if x == QtWidgets.QMessageBox.Yes:
+            dirlist = os.listdir(path="../target/")
+            if dellabel in dirlist:
                 shutil.rmtree(os.path.join("../target/", dellabel))
+                QtWidgets.QMessageBox.information(QtWidgets.QWidget(), "succees !", f"le repertoire {dellabel} ", msg.Ok)
             else:
-                break
+                QtWidgets.QMessageBox.question(QtWidgets.QWidget(), "repertoire non trouvé !", "verifiez le nom du répertoire ",msg.Ok)
+        elif x == QtWidgets.QMessageBox.No:
+            pass
+        self.addDataLabel_2.clear()
