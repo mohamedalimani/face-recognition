@@ -2,9 +2,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import reconGUI, os, time, cv2, sys, pickle
 from PIL import Image
 import numpy as np
+import shutil
 
 
-class addDataThread(QtCore.QThread):
+class AddDataThread(QtCore.QThread):
 
     frameItem = QtCore.pyqtSignal(QtWidgets.QGraphicsPixmapItem)
 
@@ -85,9 +86,9 @@ class addDataThread(QtCore.QThread):
         cv2.destroyAllWindows()
 
 
-class Ui_addnewface(object):
+class Ui_Addnewface(object):
     def __init__(self):
-        self.addDataThread = addDataThread()
+        self.addDataThread = AddDataThread()
         self.scene = QtWidgets.QGraphicsScene()
 
     def setupUi(self, addnewface):
@@ -97,9 +98,13 @@ class Ui_addnewface(object):
         self.centralwidget.setObjectName("centralwidget")
         self.addDatascreen = QtWidgets.QGraphicsView(self.centralwidget)
         self.addDatascreen.setGeometry(QtCore.QRect(280, 10, 571, 461))
+        self.addDatascreen.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.addDatascreen.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.addDatascreen.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustIgnored)
         self.addDatascreen.setObjectName("addDatascreen")
         self.addDataLabel = QtWidgets.QLineEdit(self.centralwidget)
         self.addDataLabel.setGeometry(QtCore.QRect(10, 70, 241, 51))
+        self.addDataLabel.setCursor(QtGui.QCursor(QtCore.Qt.ClosedHandCursor))
         self.addDataLabel.setObjectName("addDataLabel")
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(10, 20, 261, 41))
@@ -120,6 +125,7 @@ class Ui_addnewface(object):
         font.setItalic(False)
         font.setWeight(75)
         self.addDatastart.setFont(font)
+        self.addDatastart.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("2.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.addDatastart.setIcon(icon)
@@ -159,11 +165,35 @@ class Ui_addnewface(object):
         font.setBold(True)
         font.setWeight(75)
         self.train_faces_btn.setFont(font)
+        self.train_faces_btn.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap("1.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.train_faces_btn.setIcon(icon1)
         self.train_faces_btn.setIconSize(QtCore.QSize(29, 30))
         self.train_faces_btn.setObjectName("train_faces_btn")
+        self.deletlabel = QtWidgets.QLabel(self.centralwidget)
+        self.deletlabel.setGeometry(QtCore.QRect(10, 400, 211, 21))
+        font = QtGui.QFont()
+        font.setFamily("URW Gothic L")
+        font.setPointSize(13)
+        font.setBold(True)
+        font.setItalic(True)
+        font.setWeight(75)
+        self.deletlabel.setFont(font)
+        self.deletlabel.setObjectName("deletlabel")
+        self.deletebtn = QtWidgets.QPushButton(self.centralwidget)
+        self.deletebtn.setGeometry(QtCore.QRect(10, 500, 121, 31))
+        font = QtGui.QFont()
+        font.setFamily("URW Bookman L")
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.deletebtn.setFont(font)
+        self.deletebtn.setObjectName("deletebtn")
+        self.addDataLabel_2 = QtWidgets.QLineEdit(self.centralwidget)
+        self.addDataLabel_2.setGeometry(QtCore.QRect(10, 430, 241, 51))
+        self.addDataLabel_2.setCursor(QtGui.QCursor(QtCore.Qt.ClosedHandCursor))
+        self.addDataLabel_2.setObjectName("addDataLabel_2")
         addnewface.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(addnewface)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 863, 22))
@@ -180,6 +210,8 @@ class Ui_addnewface(object):
         self.toreconGUI.setObjectName("toreconGUI")
         self.actionarret_forc = QtWidgets.QAction(addnewface)
         self.actionarret_forc.setObjectName("actionarret_forc")
+        self.actionsupprimer_un_repertoire = QtWidgets.QAction(addnewface)
+        self.actionsupprimer_un_repertoire.setObjectName("actionsupprimer_un_repertoire")
         self.menunavigate.addAction(self.toreconGUI)
         self.menuoption.addAction(self.actionarret_forc)
         self.menubar.addAction(self.menunavigate.menuAction())
@@ -187,8 +219,9 @@ class Ui_addnewface(object):
         self.toreconGUI.triggered.connect(self.showWindow1)
         self.addDatascreen.setScene(self.scene)
         self.addDataThread.frameItem.connect(self.scene.addItem)
-        self.actionarret_forc.triggered.connect(self.force_exit)
+        self.actionarret_forc.triggered.connect(self.force_exit2)
         self.train_faces_btn.clicked.connect(self.train_data)
+        self.deletebtn.clicked.connect(self.delete_label)
 
         self.retranslateUi(addnewface)
         QtCore.QMetaObject.connectSlotsByName(addnewface)
@@ -208,14 +241,18 @@ class Ui_addnewface(object):
         self.label_5.setText(_translate("addnewface", "entrainer l\'AI :"))
         self.train_faces_btn.setStatusTip(_translate("addnewface", "entrainer l\'AI a reconnaiser les personnes que tu as ajouté"))
         self.train_faces_btn.setText(_translate("addnewface", "    entraine"))
+        self.deletlabel.setText(_translate("addnewface", "supprimer un reportoire :"))
+        self.deletebtn.setText(_translate("addnewface", "supprimer"))
         self.menunavigate.setTitle(_translate("addnewface", "navigate"))
         self.menuoption.setTitle(_translate("addnewface", "option"))
         self.toreconGUI.setText(_translate("addnewface", "vers reconnaissance facial"))
         self.toreconGUI.setStatusTip(_translate("addnewface", "ouvrir la page de réconnaissance faciale"))
         self.actionarret_forc.setText(_translate("addnewface", "arret forcé (ctrl+E)"))
         self.actionarret_forc.setShortcut(_translate("addnewface", "Ctrl+E"))
+        self.actionsupprimer_un_repertoire.setText(_translate("addnewface", "supprimer un repertoire"))
 
     def showWindow1(self):
+        self.reconThread = reconGUI.ReconThread()
         self.window = QtWidgets.QMainWindow()
         self.ui = reconGUI.Ui_faceRecon()
         self.ui.setupUi(self.window)
@@ -253,7 +290,7 @@ class Ui_addnewface(object):
             self.addDataLabel.clear()
             self.addDataThread.start()
 
-    def force_exit(self):
+    def force_exit2(self):
         msg = QtWidgets.QMessageBox()
         is_exit = msg.warning(QtWidgets.QWidget(), "attention !", "étes vous sure d'arreter le programme !", msg.Yes | msg.No, msg.No)
         if is_exit == msg.Yes:
@@ -300,16 +337,10 @@ class Ui_addnewface(object):
         msg = QtWidgets.QMessageBox()
         msg.information(QtWidgets.QWidget(), "success !", "l'entrainement est terminé avec succées", msg.Ok)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def delete_label(self):
+        dellabel = self.addDataLabel_2.text().strip()
+        for root, directories, files in os.walk("../target/"):
+            if dellabel in directories:
+                shutil.rmtree(os.path.join("../target/", dellabel))
+            else:
+                break
