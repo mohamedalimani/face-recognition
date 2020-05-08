@@ -21,7 +21,6 @@ class ReconThread(QtCore.QThread):
         self.vid_name = 0
         self.play_speed = 0.03
         self.fr_proc = 10 # number of frames that should contain the same person name to be added to the list
-
     # load training data and target labels , prepare for face detection
 
     def load_data(self):
@@ -33,10 +32,10 @@ class ReconThread(QtCore.QThread):
             self.face_cascade = cv2.CascadeClassifier("Data/haarcascade_frontalface_default.xml")
 
     def run(self):
-        vid = cv2.VideoCapture(self.vid_name)
+        self.vid = cv2.VideoCapture(self.vid_name)
         count = 0
         while self.ret:
-            ret, frame = vid.read()
+            ret, frame = self.vid.read()
             time.sleep(self.play_speed)
             # face detection block
             try:
@@ -81,6 +80,7 @@ class Ui_faceRecon(object):
         self.scene = QtWidgets.QGraphicsScene()
         self.vidname = "webcam"
         self.msg = QtWidgets.QMessageBox()
+        self.isOn = False
 
     def setupUi(self, faceRecon):
         faceRecon.setObjectName("faceRecon")
@@ -164,11 +164,14 @@ class Ui_faceRecon(object):
         self.toAddtarget.setObjectName("toAddtarget")
         self.actionsauvegarder = QtWidgets.QAction(faceRecon)
         self.actionsauvegarder.setObjectName("actionsauvegarder")
+        self.actionstopcamera = QtWidgets.QAction(faceRecon)
+        self.actionstopcamera.setObjectName("actionstopcamera")
         self.actioncomment_ca_marche = QtWidgets.QAction(faceRecon)
         self.actioncomment_ca_marche.setObjectName("actioncomment_ca_marche")
         self.menumenu.addAction(self.block_signal)
         self.menumenu.addAction(self.exitProg)
         self.menumenu.addAction(self.actionsauvegarder)
+        self.menumenu.addAction(self.actionstopcamera)
         self.menunavigate.addAction(self.toAddtarget)
         self.menuhelp.addAction(self.actioncomment_ca_marche)
         self.menubar.addAction(self.menumenu.menuAction())
@@ -211,6 +214,8 @@ class Ui_faceRecon(object):
         self.actionsauvegarder.setText(_translate("faceRecon", "sauvegarder "))
         self.actionsauvegarder.setStatusTip(_translate("faceRecon", "sauvegarder la listes des persons reconnues"))
         self.actionsauvegarder.setShortcut(_translate("faceRecon", "Ctrl+S"))
+        self.actionstopcamera.setText(_translate("faceRecon", "... "))
+        self.actionstopcamera.setStatusTip(_translate("faceRecon", "arretez le camera de filmer"))
         self.actioncomment_ca_marche.setText(_translate("faceRecon", "lire la suite ?"))
 
     def showWindow2(self):
@@ -242,7 +247,16 @@ class Ui_faceRecon(object):
         else:
             self.block_signal.setText("bloquer")
 
+    def stop_camera(self):
+        self.actionstopcamera.setText("...")
+        self.reconThread.vid.release()
+        cv2.destroyAllWindows()
+        self.reconThread.blockSignals(True)
+        self.scene.clear()
+        self.actionstopcamera.triggered.disconnect(self.stop_camera)
+
     def playvid(self):
+        self.prepare_camera()
         self.controlSpeed()
         self.reconThread.vid_name = os.path.basename(self.getVid.text()).strip()
         self.vidname = self.getVid.text().strip()
@@ -258,9 +272,16 @@ class Ui_faceRecon(object):
         self.reconThread.start()
 
     def playwebcam(self):
+        self.prepare_camera()
         self.reconThread.vid_name = 0
         self.person_name.clear()
         self.reconThread.start()
+
+    def prepare_camera(self):
+        self.reconThread.blockSignals(False)
+        self.scene.clear()
+        self.actionstopcamera.setText("arretez le camera")
+        self.actionstopcamera.triggered.connect(self.stop_camera)
 
     def controlSpeed(self):
         self.reconThread.play_speed = self.horizontalSlider.value() / 1000
@@ -278,4 +299,31 @@ class Ui_faceRecon(object):
             pass
 
     def help(self):
-        QtWidgets.QMessageBox.information(QtWidgets.QWidget(), "comment ca marche ?", "cette application est un systemme de réconnaissance faciale", self.msg.Ok)
+        msg = QtWidgets.QMessageBox()
+        msg.setWindowTitle("comment ca marche ?")
+        msg.setText("on vous introduit le systeme de réconnaissance faciale suivant :")
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setStandardButtons(QtWidgets.QMessageBox.Cancel)
+        msg.setDefaultButton(QtWidgets.QMessageBox.Cancel)
+        msg.setDetailedText("ce programme est composé de deux parties :"
+                            "\n1- réconnaissance faciale\n"
+                            "2- ajouter data\n"
+                            "le premier consiste a un API de réconnaissance faciale et on peut le faire par webcam ou video enregistrée"
+                            "on a aussi l'api qui nous permet d'ajouter des data au base de données ,on peut l'ouvrir par clicker sur le button "
+                            "'ajouter data' au menu navigate "
+                            "- les videos enregistrée doivent étre au répertoire ressources"
+                            "- la qualité des videos enregistrée doivent pas surpasser 480MP sinon il se peut que le programme s'arréte")
+        x = msg.exec_()
+
+    def loadWindowKit(self):
+        self.block = True
+        self.scene = QtWidgets.QGraphicsScene()
+        self.screen.setScene(self.scene)
+        self.reconThread.load_data()
+        self.start.clicked.connect(self.playwebcam)
+        self.block_signal.triggered.connect(self.blocksignal)
+        self.reconThread.frameItem.connect(self.scene.addItem)
+        self.getVidSub.clicked.connect(self.playvid)
+        self.horizontalSlider.valueChanged[int].connect(self.controlSpeed)
+        self.reconThread.person.connect(self.typename)
+        self.exitProg.triggered.connect(self.force_exit)
