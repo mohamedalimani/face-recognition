@@ -256,6 +256,7 @@ class Ui_Addnewface(object):
         self.window = QtWidgets.QMainWindow()
         self.ui = reconGUI.Ui_faceRecon()
         self.ui.setupUi(self.window)
+        self.ui.loadWindowKit()
         self.window.show()
 
     def delay_start(self):
