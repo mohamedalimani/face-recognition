@@ -5,6 +5,6 @@
 - reconGUI.py          : GUI window for recognizing detected persons
 
 requirements: 
-    opencv library for python
-    python version 3.6
-    pyqt5 
+    -opencv library for python
+    -python version 3.6
+    -pyqt5 
